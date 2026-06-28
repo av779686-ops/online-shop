@@ -28,7 +28,7 @@ def create_user(user: UserCreate, db:Session = Depends(get_db)):
     new_user = User(username = user.username, password = user.password)
     db.add(new_user)
     db.commit()
-    db.commit(new_user)
+    db.refresh(new_user)
     return new_user
 
 @users_router.get("/users")
