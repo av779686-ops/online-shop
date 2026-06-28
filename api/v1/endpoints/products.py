@@ -31,12 +31,15 @@ def create_product(product: ProductCreate, db:Session = Depends(get_db)):
     db.refresh(new_product)
     return new_product
 
-
-@products_router.get("/products")
-def get_products(id, db:Session = Depends(get_db)):
+@products_router.get("/products/{id}")
+def get_product(id, db:Session = Depends(get_db)):
    product = db.query(Product).filter(Product.id == id).first()
    return product
 
+@products_router.get("/products")
+def get_products(id, db:Session = Depends(get_db)):
+   product = db.query(Product).all()
+   return product
 
 @products_router.put("/products")
 def update_products(id: str, product_data: ProductUpdate, db:Session = Depends(get_db)):

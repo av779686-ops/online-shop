@@ -31,9 +31,14 @@ def create_user(user: UserCreate, db:Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
-@users_router.get("/users")
-def get_users(id, db:Session = Depends(get_db)):
+@users_router.get("/users/{id}")
+def get_user(id, db:Session = Depends(get_db)):
    user = db.query(User).filter(User.id == id).first()
+   return user
+
+@users_router.get("/users")
+def get_users(db:Session = Depends(get_db)):
+   user = db.query(User).all()
    return user
 
 @users_router.put("/users")
