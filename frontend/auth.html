@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Login and Registration</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="auth.js" defer></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Account Access</h1>
+            <p>Test registration and login through your backend API.</p>
+            <a class="header-link" href="index.html">Back to dashboard</a>
+        </div>
+    </header>
+
+    <main class="container auth-layout">
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Login</h2>
+                    <p>Use an existing username and password.</p>
+                </div>
+            </div>
+
+            <form id="login-form" class="form auth-form">
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+
+                    <input
+                        id="login-username"
+                        name="username"
+                        type="text"
+                        placeholder="Enter username"
+                        required
+                        minlength="6"
+                        maxlength="20"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+
+                    <input
+                        id="login-password"
+                        name="password"
+                        type="password"
+                        placeholder="Enter password"
+                        required
+                        minlength="8"
+                        maxlength="16"
+                    >
+                </div>
+
+                <button class="button" type="submit">
+                    Login
+                </button>
+            </form>
+
+            <p id="login-status" class="status"></p>
+
+            <div id="login-result" class="result-box" hidden></div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Register</h2>
+                    <p>Create a new account with username, email, and password.</p>
+                </div>
+            </div>
+
+            <form id="register-form" class="form auth-form">
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+
+                    <input
+                        id="register-username"
+                        name="username"
+                        type="text"
+                        placeholder="Choose username"
+                        required
+                        minlength="6"
+                        maxlength="20"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+
+                    <input
+                        id="register-email"
+                        name="email"
+                        type="email"
+                        placeholder="name@example.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+
+                    <input
+                        id="register-password"
+                        name="password"
+                        type="password"
+                        placeholder="Choose password"
+                        required
+                        minlength="8"
+                        maxlength="16"
+                    >
+                </div>
+
+                <button class="button" type="submit">
+                    Register
+                </button>
+            </form>
+
+            <p id="register-status" class="status"></p>
+
+            <div id="register-result" class="result-box" hidden></div>
+        </section>
+    </main>
+</body>
+</html>

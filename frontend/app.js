@@ -5,6 +5,11 @@ For example:
     http://127.0.0.1:5000
 */
 const API_BASE_URL = "http://127.0.0.1:8000";
+const AUTH_TOKEN_STORAGE_KEY = "access_token";
+
+if (!localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)) {
+    window.location.replace("auth.html");
+}
 
 /*
 Change these routes if your backend uses different endpoint names.
@@ -37,17 +42,24 @@ const refreshProductsButton = document.getElementById(
     "refresh-products-button"
 );
 
+const logoutButton = document.getElementById("logout-button");
+
 
 // General API request function
 
 async function apiRequest(path, options = {}) {
     const url = `${API_BASE_URL}${path}`;
+    const accessToken = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+
     console.log("URLLL--->", url)
     const response = await fetch(url, {
         ...options,
 
         headers: {
             "Content-Type": "application/json",
+            ...(accessToken
+                ? { Authorization: `Bearer ${accessToken}` }
+                : {}),
             ...options.headers,
         },
     });
@@ -526,6 +538,13 @@ document.addEventListener("click", async (event) => {
 
 refreshUsersButton.addEventListener("click", loadUsers);
 refreshProductsButton.addEventListener("click", loadProducts);
+
+logoutButton.addEventListener("click", () => {
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_id");
+    window.location.replace("auth.html");
+});
 
 
 // Load data when the page is opened.

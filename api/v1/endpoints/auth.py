@@ -1,11 +1,52 @@
+from datetime import datetime, timedelta, timezone
+
 from database import get_db, Base
-from fastapi import APIRouter, Depends
+
 from sqlalchemy.orm import Session
-from sqlalchemy import Column, Integer, String
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
-from utils.utils import hash_password, verify_password, create_access_token
+
+from fastapi import (APIRouter, 
+                     Depends, 
+                     HTTPException)
+
+from pydantic import (BaseModel, 
+                      Field, 
+                      ConfigDict, 
+                      EmailStr)
+
+from sqlalchemy import (Column, 
+                        Integer, 
+                        String, 
+                        ForeignKey, 
+                        DateTime,
+                        Boolean)
+
+from utils.utils import (hash_password, 
+                         verify_password, 
+                         create_access_token,
+                         create_refresh_token,
+                         decode_token)
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    refresh_token_hash = Column(String, unique=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    revoked = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.now)
+    model_config = ConfigDict(from_attributes=True)
+
+class ProductCreate(BaseModel):
+    name: str
+    price: int = Field(gt=0)
+    model_config = ConfigDict(from_attributes=True)
+
+class ProductUpdate(BaseModel):
+    name: str | None = None
+    price: int | None = Field(default=None, gt=0)
+
 
 class User(Base):
     __tablename__ = "users"
@@ -58,16 +99,80 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     ).first()
 
     if not existing_user:
-        return "We dont have such user !!"
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
     
     
     if verify_password(user_data.password, existing_user.password):
 
-        access_token = create_access_token({"sub": str(existing_user.id), "email": existing_user.email})
+        access_token = create_access_token({"sub": str(existing_user.id), "email": existing_user.username})
+        refresh_token = create_refresh_token({"sub": str(existing_user.id), "email": existing_user.username})
+        
+        db_refresh_token = RefreshToken(
+            user_id=existing_user.id,
+            refresh_token_hash=refresh_token,
+            expires_at=datetime.now() + timedelta(days=3),
+            revoked=False
+        )
+
+        db.add(db_refresh_token)
+        db.commit()
+
         return {
             "access_token": access_token,
-            "email": existing_user.email,
-            "id": existing_user.id
+            "refresh_token": refresh_token,
+            "token_type": "bearer"
         }
+
+    raise HTTPException(
+        status_code=401,
+        detail="Invalid password"
+    )
+
+@auth_router.post("/refresh")
+def refresh_token(refresh_token, db: Session = Depends(get_db)):
+    payload = decode_token(refresh_token)
+
+    if not payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired refresh token"
+        )
     
-    return "We dont have such user !!"
+    token_type = payload.get("type")
+
+    if token_type != "refresh":
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token type"
+        )
+    
+    user_id = payload.get("sub")
+    username = payload.get("username")
+    
+    db_token = db.query(RefreshToken).filter(
+        RefreshToken.refresh_token_hash == refresh_token,
+        RefreshToken.revoked == False
+    ).first()
+
+    if not db_token:
+        raise HTTPException(status_code=401,
+                            detail="Refresh token revoked")
+
+    if not user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token payload"
+        )
+    
+    new_access_token = create_access_token({
+         "sub": user_id,
+         "username": username
+    })
+
+    return {
+         "access_token": new_access_token,
+         "token_type": "bearer"
+    }

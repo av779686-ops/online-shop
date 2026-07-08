@@ -35,6 +35,38 @@ input {
     color: #dbeafe;
 }
 
+.header-link {
+    display: inline-flex;
+    color: white;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.header-link:hover {
+    text-decoration: underline;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.header-button {
+    padding: 0;
+    border: 0;
+    color: white;
+    background: transparent;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.header-button:hover {
+    text-decoration: underline;
+}
+
 main {
     display: grid;
     gap: 24px;
@@ -203,8 +235,33 @@ main {
     border-radius: 10px;
 }
 
+.auth-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.auth-form {
+    grid-template-columns: 1fr;
+}
+
+.result-box {
+    overflow-x: auto;
+    padding: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    color: #111827;
+    background-color: #f9fafb;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
 @media (max-width: 750px) {
     .form {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-layout {
         grid-template-columns: 1fr;
     }
 

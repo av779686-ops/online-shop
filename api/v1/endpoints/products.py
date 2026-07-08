@@ -37,7 +37,7 @@ def get_product(id, db:Session = Depends(get_db)):
    return product
 
 @products_router.get("/products")
-def get_products(id, db:Session = Depends(get_db)):
+def get_products(db:Session = Depends(get_db)):
    product = db.query(Product).all()
    return product
 
@@ -54,7 +54,7 @@ def update_products(id: str, product_data: ProductUpdate, db:Session = Depends(g
     return product
 
 
-@products_router.delete("/products")
+@products_router.delete("/products/{id}")
 def delete_product(id: int, db:Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == id).first()  
     db.delete(product)

@@ -1,6 +1,6 @@
 import json
 from passlib.context import CryptContext
-from jose import jwt
+from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -31,7 +31,7 @@ def create_access_token(data):
         minutes=15
     )
 
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "type": "access"})
 
     token = jwt.encode(
         to_encode,
@@ -40,3 +40,27 @@ def create_access_token(data):
     )
 
     return token
+
+def create_refresh_token(data):
+    to_encode = data.copy()
+
+    expire = datetime.now(timezone.utc) + timedelta(
+        days=3
+    )
+
+    to_encode.update({"exp": expire, "type": "refresh"})
+
+    token = jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm="HS256"
+    )
+
+    return token
+
+def decode_token(token):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return payload
+    except JWTError:
+        return None
