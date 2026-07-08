@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Backend Test Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Backend Test Dashboard</h1>
+            <p>Manage users and products through your backend API.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Users section -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Users</h2>
+                    <p>Create users and load them from the backend.</p>
+                </div>
+
+                <button
+                    id="refresh-users-button"
+                    class="button button-secondary"
+                    type="button"
+                >
+                    Refresh users
+                </button>
+            </div>
+
+            <form id="user-form" class="form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        placeholder="Enter username"
+                        required
+                        minlength="3"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="Enter password"
+                        required
+                        minlength="4"
+                    >
+                </div>
+
+                <button class="button" type="submit">
+                    Create user
+                </button>
+            </form>
+
+            <p id="user-status" class="status"></p>
+
+            <div id="users-list" class="cards">
+                <!-- Users will be inserted here with JavaScript -->
+            </div>
+        </section>
+
+        <!-- Products section -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Products</h2>
+                    <p>Create products and load them from the backend.</p>
+                </div>
+
+                <button
+                    id="refresh-products-button"
+                    class="button button-secondary"
+                    type="button"
+                >
+                    Refresh products
+                </button>
+            </div>
+
+            <form id="product-form" class="form">
+                <div class="form-group">
+                    <label for="product-name">Product name</label>
+
+                    <input
+                        id="product-name"
+                        name="name"
+                        type="text"
+                        placeholder="Enter product name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="product-price">Price</label>
+
+                    <input
+                        id="product-price"
+                        name="price"
+                        type="number"
+                        placeholder="Enter price"
+                        required
+                        min="0"
+                        step="0.01"
+                    >
+                </div>
+
+                <button class="button" type="submit">
+                    Create product
+                </button>
+            </form>
+
+            <p id="product-status" class="status"></p>
+
+            <div id="products-list" class="cards">
+                <!-- Products will be inserted here with JavaScript -->
+            </div>
+        </section>
+    </main>
+</body>
+</html>
