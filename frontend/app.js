@@ -62,6 +62,7 @@ async function apiRequest(path, options = {}) {
                 : {}),
             ...options.headers,
         },
+        credentials:"include"
     });
 
     // DELETE endpoints often return HTTP 204 with no response body.
@@ -539,13 +540,26 @@ document.addEventListener("click", async (event) => {
 refreshUsersButton.addEventListener("click", loadUsers);
 refreshProductsButton.addEventListener("click", loadProducts);
 
-logoutButton.addEventListener("click", () => {
+logoutButton.addEventListener("click", async () => {
+    try {
+        const response = await fetch("http://localhost:8000/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            console.error("Logout failed");
+        }
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_id");
+
     window.location.replace("auth.html");
 });
-
 
 // Load data when the page is opened.
 

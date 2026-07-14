@@ -8,14 +8,14 @@ from sqlalchemy import Column, Integer, String
 users_router = APIRouter()
 
 
-class UserCreate(BaseModel): # validation
-      username: str = Field(min_length=6, max_length=20)
-      password: str = Field(min_length=8, max_length=16)
-      model_config = ConfigDict(from_attributes=True)
+# class UserCreate(BaseModel): # validation
+#       username: str = Field(min_length=6, max_length=20)
+#       password: str = Field(min_length=8, max_length=16)
+#       model_config = ConfigDict(from_attributes=True)
 
-class UserUpdate(BaseModel):
-    username: str | None = Field(default=None, min_length=6, max_length=20)
-    password: str | None = Field(default=None, min_length=8, max_length=16)
+# class UserUpdate(BaseModel):
+#     username: str | None = Field(default=None, min_length=6, max_length=20)
+#     password: str | None = Field(default=None, min_length=8, max_length=16)
 
 
 # @users_router.post("/users")

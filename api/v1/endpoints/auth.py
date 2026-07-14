@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 
 from fastapi import (APIRouter, 
                      Depends, 
-                     HTTPException)
+                     HTTPException,
+                     Response,
+                     Request)
 
 from pydantic import (BaseModel, 
                       Field, 
@@ -91,7 +93,7 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
     return new_user
 
 @auth_router.post("/login")
-def login(user_data: UserLogin, db: Session = Depends(get_db)):
+def login(user_data: UserLogin, response:Response, db: Session = Depends(get_db)):
     hashed_password = hash_password(user_data.password)
     print(hashed_password)
     existing_user = db.query(User).filter(
@@ -119,7 +121,15 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
 
         db.add(db_refresh_token)
         db.commit()
-
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            max_age=3*24*60*60
+        )
+        print(response.headers)
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -176,3 +186,13 @@ def refresh_token(refresh_token, db: Session = Depends(get_db)):
          "access_token": new_access_token,
          "token_type": "bearer"
     }
+@auth_router.post("/logout")
+def logout(request:Request,response:Response,db: Session = Depends(get_db)):
+    token = request.cookies.get("refresh_token")
+    if token:
+        db_token = db.query(RefreshToken).filter(RefreshToken.refresh_token_hash==token).first()
+    if db_token:
+        db_token.revoked = True
+        db.commit()
+    response.delete_cookie(key="refresh_token",path="/")
+    return {"message":"logout"}
