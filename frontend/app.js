@@ -51,7 +51,7 @@ async function apiRequest(path, options = {}) {
     const url = `${API_BASE_URL}${path}`;
     const accessToken = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
 
-    console.log("URLLL--->", url)
+    console.log("URLLL--->", accessToken)
     const response = await fetch(url, {
         ...options,
 
@@ -259,12 +259,19 @@ userForm.addEventListener("submit", async (event) => {
         .value
         .trim();
 
+
+    const email = document
+        .getElementById("email")
+        .value
+        .trim();    
+
     const password = document.getElementById("password").value;
 
-    if (!username || !password) {
+
+    if (!username || !email || !password) {
         setStatus(
             userStatus,
-            "Username and password are required.",
+            "Username and email and password are required.",
             "error"
         );
 
@@ -273,8 +280,11 @@ userForm.addEventListener("submit", async (event) => {
 
     const newUser = {
         username,
+        email,
         password,
     };
+
+    console.log("NewUser-->", newUser);
 
     submitButton.disabled = true;
     setStatus(userStatus, "Creating user...", "loading");

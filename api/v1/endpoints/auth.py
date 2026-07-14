@@ -4,6 +4,8 @@ from database import get_db, Base
 
 from sqlalchemy.orm import Session
 
+from enum import Enum
+
 from fastapi import (APIRouter, 
                      Depends, 
                      HTTPException,
@@ -20,7 +22,8 @@ from sqlalchemy import (Column,
                         String, 
                         ForeignKey, 
                         DateTime,
-                        Boolean)
+                        Boolean,
+                        Enum as SqlEnum)
 
 from utils.utils import (hash_password, 
                          verify_password, 
@@ -50,6 +53,10 @@ class ProductUpdate(BaseModel):
     price: int | None = Field(default=None, gt=0)
 
 
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    USER = "user"
+    
 class User(Base):
     __tablename__ = "users"
 
@@ -57,6 +64,12 @@ class User(Base):
     username = Column(String(100), unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
+
+    role = Column(
+        SqlEnum(UserRole, name="user_role"),
+        default=UserRole.USER,
+        nullable=False
+    )
 
 class UserRegister(BaseModel): # validation
     username: str = Field(min_length=6, max_length=20)
@@ -186,8 +199,9 @@ def refresh_token(refresh_token, db: Session = Depends(get_db)):
          "access_token": new_access_token,
          "token_type": "bearer"
     }
+
 @auth_router.post("/logout")
-def logout(request:Request,response:Response,db: Session = Depends(get_db)):
+def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     token = request.cookies.get("refresh_token")
     if token:
         db_token = db.query(RefreshToken).filter(RefreshToken.refresh_token_hash==token).first()
