@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plain Store — Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="admin.js" defer></script>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="index.html">PLAIN STORE</a>
+        <nav class="nav-actions">
+            <a class="text-link" href="index.html">View store</a>
+            <button id="logout-button" class="text-button" type="button">Log out</button>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        <div class="admin-heading">
+            <div><p class="eyebrow">Private area</p><h1>Admin dashboard</h1></div>
+            <p>Manage the store’s users and products.</p>
+        </div>
+
+        <p id="admin-status" class="status" role="status"></p>
+
+        <section class="admin-section" aria-labelledby="products-heading">
+            <div class="admin-section-head"><div><h2 id="products-heading">Products</h2><p id="admin-product-count" class="muted"></p></div></div>
+            <form id="product-form" class="admin-form">
+                <input id="product-id" type="hidden">
+                <label>Product name<input id="product-name" type="text" placeholder="e.g. Canvas bag" required></label>
+                <label>Price<input id="product-price" type="number" placeholder="0" min="1" step="1" required></label>
+                <label>Image<input id="product-image" type="file" accept="image/*"></label>
+                <button id="product-submit" class="primary-button compact" type="submit">Add product</button>
+                <button id="product-cancel" class="secondary-button compact" type="button" hidden>Cancel</button>
+            </form>
+            <div id="admin-products-list" class="admin-list"></div>
+        </section>
+
+        <section class="admin-section" aria-labelledby="users-heading">
+            <div class="admin-section-head"><div><h2 id="users-heading">Users</h2><p id="admin-user-count" class="muted"></p></div></div>
+            <form id="user-form" class="admin-form user-admin-form">
+                <label>Username<input id="user-username" type="text" placeholder="6–20 characters" minlength="6" maxlength="20" required></label>
+                <label>Email<input id="user-email" type="email" placeholder="you@example.com" required></label>
+                <label>Password<input id="user-password" type="password" placeholder="8–16 characters" minlength="8" maxlength="16" required></label>
+                <label>Starting balance<input id="user-money" type="number" min="0" step="0.01" value="0"></label>
+                <button class="primary-button compact" type="submit">Add user</button>
+            </form>
+            <div id="admin-users-list" class="admin-list"></div>
+        </section>
+    </main>
+</body>
+</html>

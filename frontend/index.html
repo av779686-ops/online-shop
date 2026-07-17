@@ -2,161 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Backend Test Dashboard</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plain Store — Products</title>
     <link rel="stylesheet" href="style.css">
-
     <script src="app.js" defer></script>
 </head>
-
 <body>
-    <header class="header">
-        <div class="container">
-            <h1>Backend Test Dashboard</h1>
-            <p>Manage users and products through your backend API.</p>
-            <div class="header-actions">
-                <a class="header-link" href="auth.html">Account</a>
-                <button
-                    id="logout-button"
-                    class="header-button"
-                    type="button"
-                >
-                    Logout
-                </button>
-            </div>
-        </div>
+    <header class="site-header">
+        <a class="brand" href="index.html">PLAIN STORE</a>
+        <nav class="nav-actions" aria-label="Account navigation">
+            <a id="admin-link" class="text-link" href="admin.html" hidden>Admin</a>
+            <span id="user-name" class="user-name"></span>
+            <span id="user-money" class="user-money">$0.00</span>
+            <button id="logout-button" class="text-button" type="button">Log out</button>
+        </nav>
     </header>
 
-    <main class="container">
-        <!-- Users section -->
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <h2>Users</h2>
-                    <p>Create users and load them from the backend.</p>
-                </div>
-
-                <button
-                    id="refresh-users-button"
-                    class="button button-secondary"
-                    type="button"
-                >
-                    Refresh users
-                </button>
-            </div>
-
-            <form id="user-form" class="form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-
-                    <input
-                        id="username"
-                        name="username"
-                        type="text"
-                        placeholder="Enter username"
-                        required
-                        minlength="3"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email</label>
-
-                    <input
-                        id="email"
-                        name="email"
-                        type="text"
-                        placeholder="Enter email"
-                        required
-                        minlength="3"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter password"
-                        required
-                        minlength="4"
-                    >
-                </div>
-
-                <button class="button" type="submit">
-                    Create user
-                </button>
-            </form>
-
-            <p id="user-status" class="status"></p>
-
-            <div id="users-list" class="cards">
-                <!-- Users will be inserted here with JavaScript -->
-            </div>
+    <main class="shop-main">
+        <section class="page-intro">
+            <p class="eyebrow">The essentials</p>
+            <h1>Simple things,<br>made well.</h1>
+            <p class="intro-copy">A small collection of everyday products selected for quality and usefulness.</p>
         </section>
 
-        <!-- Products section -->
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <h2>Products</h2>
-                    <p>Create products and load them from the backend.</p>
-                </div>
-
-                <button
-                    id="refresh-products-button"
-                    class="button button-secondary"
-                    type="button"
-                >
-                    Refresh products
-                </button>
+        <section aria-labelledby="products-title">
+            <div class="section-title-row">
+                <h2 id="products-title">All products</h2>
+                <span id="product-count" class="muted"></span>
             </div>
-
-            <form id="product-form" class="form">
-                <div class="form-group">
-                    <label for="product-name">Product name</label>
-
-                    <input
-                        id="product-name"
-                        name="name"
-                        type="text"
-                        placeholder="Enter product name"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="product-price">Price</label>
-
-                    <input
-                        id="product-price"
-                        name="price"
-                        type="number"
-                        placeholder="Enter price"
-                        required
-                        min="0"
-                        step="0.01"
-                    >
-                </div>
-
-                <button class="button" type="submit">
-                    Create product
-                </button>
-            </form>
-
-            <p id="product-status" class="status"></p>
-
-            <div id="products-list" class="cards">
-                <!-- Products will be inserted here with JavaScript -->
-            </div>
+            <p id="product-status" class="status" role="status"></p>
+            <div id="products-list" class="product-grid" aria-live="polite"></div>
+        </section>
+        <section class="basket-panel" aria-labelledby="basket-title">
+            <div class="section-title-row"><h2 id="basket-title">Your basket</h2><span id="basket-total" class="muted">$0.00</span></div>
+            <div id="basket-items" class="basket-items"></div>
+            <button id="checkout-button" class="primary-button" type="button">Checkout</button>
+            <p id="basket-status" class="status" role="status"></p>
         </section>
     </main>
 </body>

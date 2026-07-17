@@ -64,3 +64,16 @@ def decode_token(token):
         return payload
     except JWTError:
         return None
+    
+
+def is_able_pay(basket, user_money):
+
+    total = 0
+
+    for item in basket:
+        total += item.price * item.qty
+
+    if user_money >= total:
+        return True
+    
+    return False

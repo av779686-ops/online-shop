@@ -23,6 +23,7 @@ from sqlalchemy import (Column,
                         ForeignKey, 
                         DateTime,
                         Boolean,
+                        Float,
                         Enum as SqlEnum)
 
 from utils.utils import (hash_password, 
@@ -64,6 +65,7 @@ class User(Base):
     username = Column(String(100), unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
+    money = Column(Float, nullable=False)
 
     role = Column(
         SqlEnum(UserRole, name="user_role"),
@@ -75,6 +77,7 @@ class UserRegister(BaseModel): # validation
     username: str = Field(min_length=6, max_length=20)
     email: str = EmailStr
     password: str = Field(min_length=8, max_length=16)
+    money: float = Field(default=0, ge=0)
     model_config = ConfigDict(from_attributes=True)
 
 class UserLogin(BaseModel):
@@ -96,7 +99,8 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
     new_user = User(
          username=user_data.username,
          email=user_data.email,
-         password= hashed_password
+         password= hashed_password,
+         money=user_data.money
     )
 
     db.add(new_user)
@@ -203,6 +207,7 @@ def refresh_token(refresh_token, db: Session = Depends(get_db)):
 @auth_router.post("/logout")
 def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     token = request.cookies.get("refresh_token")
+    db_token = None
     if token:
         db_token = db.query(RefreshToken).filter(RefreshToken.refresh_token_hash==token).first()
     if db_token:

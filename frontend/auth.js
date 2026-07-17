@@ -1,186 +1,82 @@
-/*
-Change this value if your backend runs on another address or port.
-For example:
-    http://localhost:8000
-    http://127.0.0.1:5000
-*/
 const API_BASE_URL = "http://127.0.0.1:8000";
-const AUTH_TOKEN_STORAGE_KEY = "access_token";
+const TOKEN_KEY = "access_token";
 
-if (localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)) {
-    window.location.replace("index.html");
-}
-
-/*
-Change these routes if your backend uses different endpoint names.
-Current FastAPI routes are:
-    POST /auth/login
-    POST /auth/register
-*/
-const AUTH_ROUTES = {
-    login: "/auth/login",
-    register: "/auth/register",
-};
+if (localStorage.getItem(TOKEN_KEY)) window.location.replace("index.html");
 
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
-
 const loginStatus = document.getElementById("login-status");
 const registerStatus = document.getElementById("register-status");
 
-const loginResult = document.getElementById("login-result");
-const registerResult = document.getElementById("register-result");
-
-async function apiRequest(path, options = {}) {
+async function request(path, body) {
     const response = await fetch(`${API_BASE_URL}${path}`, {
-        ...options,
-        credentials:"include",
-        headers: {
-            "Content-Type": "application/json",
-            ...options.headers,
-        },
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
     });
-
-    const contentType = response.headers.get("content-type");
-    const data = contentType?.includes("application/json")
-        ? await response.json()
-        : await response.text();
-
+    const data = response.headers.get("content-type")?.includes("application/json") ? await response.json() : await response.text();
     if (!response.ok) {
-        throw new Error(getErrorMessage(data, response.status));
+        const detail = data?.detail;
+        const message = Array.isArray(detail) ? detail.map(item => item.msg).join(". ") : detail;
+        throw new Error(message || data?.message || `Request failed (${response.status})`);
     }
-
     return data;
 }
 
-function getErrorMessage(data, statusCode) {
-    if (typeof data === "string" && data.trim()) {
-        return data;
-    }
-
-    if (data?.detail) {
-        return typeof data.detail === "string"
-            ? data.detail
-            : JSON.stringify(data.detail);
-    }
-
-    if (data?.message) {
-        return data.message;
-    }
-
-    return `Request failed with status ${statusCode}`;
-}
-
-function setStatus(element, message = "", type = "") {
+function setStatus(element, message, type = "") {
     element.textContent = message;
-    element.className = "status";
-
-    if (type) {
-        element.classList.add(type);
-    }
+    element.className = `status ${type}`.trim();
 }
 
-function showResult(element, data) {
-    element.hidden = false;
-    element.textContent = JSON.stringify(data, null, 2);
+function openPanel(panelId) {
+    document.querySelectorAll(".auth-tab").forEach(tab => {
+        const active = tab.dataset.panel === panelId;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", String(active));
+    });
+    document.querySelectorAll(".auth-content").forEach(panel => { panel.hidden = panel.id !== panelId; });
 }
 
-function clearResult(element) {
-    element.hidden = true;
-    element.textContent = "";
-}
+document.querySelectorAll(".auth-tab").forEach(tab => tab.addEventListener("click", () => openPanel(tab.dataset.panel)));
 
-loginForm.addEventListener("submit", async (event) => {
+loginForm.addEventListener("submit", async event => {
     event.preventDefault();
-
-    const submitButton = loginForm.querySelector(
-        'button[type="submit"]'
-    );
-
-    const username = document
-        .getElementById("login-username")
-        .value
-        .trim();
-
-    const password = document.getElementById("login-password").value;
-
-    submitButton.disabled = true;
-    clearResult(loginResult);
-    setStatus(loginStatus, "Logging in...", "loading");
-
+    const button = loginForm.querySelector("button[type=submit]");
+    button.disabled = true;
+    setStatus(loginStatus, "Signing you in…", "loading");
     try {
-        const responseData = await apiRequest(AUTH_ROUTES.login, {
-            method: "POST",
-            body: JSON.stringify({ username, password }),
+        const data = await request("/auth/login", {
+            username: document.getElementById("login-username").value.trim(),
+            password: document.getElementById("login-password").value,
         });
-
-        if (responseData?.access_token) {
-            localStorage.setItem(
-                AUTH_TOKEN_STORAGE_KEY,
-                responseData.access_token
-            );
-            localStorage.setItem("user_email", responseData.email ?? "");
-            localStorage.setItem("user_id", responseData.id ?? "");
-
-            setStatus(loginStatus, "Login successful. Redirecting...", "success");
-            window.location.replace("index.html");
-            return;
-        }
-
-        setStatus(
-            loginStatus,
-            "Login request completed, but no access token was returned.",
-            "error"
-        );
-        showResult(loginResult, responseData);
+        if (!data?.access_token) throw new Error("The server did not return an access token.");
+        localStorage.setItem(TOKEN_KEY, data.access_token);
+        setStatus(loginStatus, "Welcome back. Redirecting…", "success");
+        window.location.replace("index.html");
     } catch (error) {
-        console.error("Could not login:", error);
-        setStatus(loginStatus, `Could not login: ${error.message}`, "error");
-    } finally {
-        submitButton.disabled = false;
-    }
+        setStatus(loginStatus, error.message, "error");
+    } finally { button.disabled = false; }
 });
 
-registerForm.addEventListener("submit", async (event) => {
+registerForm.addEventListener("submit", async event => {
     event.preventDefault();
-
-    const submitButton = registerForm.querySelector(
-        'button[type="submit"]'
-    );
-
-    const username = document
-        .getElementById("register-username")
-        .value
-        .trim();
-
-    const email = document
-        .getElementById("register-email")
-        .value
-        .trim();
-
-    const password = document.getElementById("register-password").value;
-
-    submitButton.disabled = true;
-    clearResult(registerResult);
-    setStatus(registerStatus, "Creating account...", "loading");
-
+    const button = registerForm.querySelector("button[type=submit]");
+    const username = document.getElementById("register-username").value.trim();
+    button.disabled = true;
+    setStatus(registerStatus, "Creating your account…", "loading");
     try {
-        const responseData = await apiRequest(AUTH_ROUTES.register, {
-            method: "POST",
-            body: JSON.stringify({ username, email, password }),
+        const data = await request("/auth/register", {
+            username,
+            email: document.getElementById("register-email").value.trim(),
+            password: document.getElementById("register-password").value,
         });
-
+        if (typeof data === "string") throw new Error(data);
         registerForm.reset();
-        setStatus(registerStatus, "Registration request completed.", "success");
-        showResult(registerResult, responseData);
+        document.getElementById("login-username").value = username;
+        openPanel("login-panel");
+        setStatus(loginStatus, "Account created. You can log in now.", "success");
     } catch (error) {
-        console.error("Could not register:", error);
-        setStatus(
-            registerStatus,
-            `Could not register: ${error.message}`,
-            "error"
-        );
-    } finally {
-        submitButton.disabled = false;
-    }
+        setStatus(registerStatus, error.message, "error");
+    } finally { button.disabled = false; }
 });
