@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI
 from api.v1.endpoints.products import products_router
 from api.v1.endpoints.users import users_router
@@ -6,6 +7,7 @@ from api.v1.endpoints.basket import basket_router
 from database import engine, Base
 
 from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 Base.metadata.create_all(bind = engine)
@@ -26,5 +28,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
