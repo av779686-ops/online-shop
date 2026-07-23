@@ -1,12 +1,20 @@
+import base64
+import binascii
 from fastapi import APIRouter, Depends, Request, HTTPException
 from database import get_db, Base
+from logging_config import logger
 from pydantic import BaseModel, Field, ConfigDict
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String, LargeBinary
 from utils.utils import decode_token
-import base64
 
 products_router = APIRouter()
+
+ALLOWED_IMAGE_MIME_TYPES = {"image/jpeg", "image/jpg", "image/png"}
+JPEG_SIGNATURE = b"\xff\xd8\xff"
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
 class Product(Base):
     __tablename__ = "products"
 
@@ -29,30 +37,75 @@ class ProductUpdate(BaseModel):
 def image_bytes(value):
     if not value:
         return None
+
+    declared_mime = None
+    encoded = value
+    if value.startswith("data:"):
+        try:
+            metadata, encoded = value.split(",", 1)
+        except ValueError:
+            logger.warning("Rejected malformed image data URL")
+            raise HTTPException(422, "Image must be a valid JPG or PNG")
+
+        parts = metadata[5:].lower().split(";")
+        declared_mime = parts[0]
+        if declared_mime not in ALLOWED_IMAGE_MIME_TYPES or "base64" not in parts[1:]:
+            logger.warning("Rejected unsupported image type: %s", declared_mime)
+            raise HTTPException(422, "Only JPG and PNG images are allowed")
+
     try:
-        encoded = value.split(",", 1)[1] if "," in value else value
-        return base64.b64decode(encoded)
-    except (ValueError, TypeError):
-        raise HTTPException(422, "Image must be a valid base64 data URL")
+        raw = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError, TypeError):
+        logger.warning("Rejected invalid base64 image")
+        raise HTTPException(422, "Image must be a valid base64-encoded JPG or PNG")
+
+    actual_mime = image_mime(raw)
+    if actual_mime is None:
+        logger.warning("Rejected image with an unsupported file signature")
+        raise HTTPException(422, "Only JPG and PNG images are allowed")
+    if declared_mime and (
+        declared_mime == "image/png"
+    ) != (
+        actual_mime == "image/png"
+    ):
+        logger.warning(
+            "Rejected image whose declared type %s does not match its content",
+            declared_mime,
+        )
+        raise HTTPException(422, "Image type does not match its content")
+
+    return raw
+
+
+def image_mime(raw):
+    if raw.startswith(PNG_SIGNATURE):
+        return "image/png"
+    if raw.startswith(JPEG_SIGNATURE):
+        return "image/jpeg"
+    return None
 
 def product_json(product):
     image = None
     if product.image:
         raw = bytes(product.image)
-        mime = "image/png" if raw.startswith(b"\x89PNG") else "image/gif" if raw.startswith(b"GIF") else "image/webp" if raw.startswith(b"RIFF") else "image/jpeg"
-        image = f"data:{mime};base64," + base64.b64encode(raw).decode("ascii")
+        mime = image_mime(raw)
+        if mime:
+            image = f"data:{mime};base64," + base64.b64encode(raw).decode("ascii")
     return {"id": product.id, "name": product.name, "price": product.price, "image": image}
 
 def require_admin(request: Request, db: Session):
     authorization = request.headers.get("authorization", "")
     if not authorization.lower().startswith("bearer "):
+        logger.warning("Product administration rejected: authentication required")
         raise HTTPException(401, "Authentication required")
     payload = decode_token(authorization.split(" ", 1)[1])
     if not payload or not payload.get("sub"):
+        logger.warning("Product administration rejected: invalid or expired token")
         raise HTTPException(401, "Invalid or expired token")
     from .auth import User
     user = db.query(User).filter(User.id == int(payload["sub"])).first()
     if not user or user.role.value != "admin":
+        logger.warning("Product administration rejected: admin access required")
         raise HTTPException(403, "Admin access required")
     return user
 
